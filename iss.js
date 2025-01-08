@@ -9,25 +9,45 @@ const needle = require('needle');
  *   - The IP address as a string (null if error). Example: "162.245.144.188"
  */
 
-const fetchCoordsByIP = function(ip, callback) {
-    needle.get(`http://ipwho.is/${ip}`, (error, response, body) => {
+// const fetchCoordsByIP = function(ip, callback) {
+//     needle.get(`http://ipwho.is/${ip}`, (error, response, body) => {
   
+//       if (error) {
+//         callback(error, null);
+//         return;
+//       }
+  
+//       if (!body.success) {
+//         const message = `Success status was ${body.success}. Server message says: ${body.message} when fetching for IP ${body.ip}`;
+//         callback(Error(message), null);
+//         return;
+//       } 
+  
+//       const latitude = body.latitude
+//       const longitude = body.longitude
+//       callback(null, {latitude, longitude});
+//     });
+//   };
+
+const fetchISSFlyOverTimes = function(coords, callback) {
+    const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
+  
+    needle.get(url, (error, response, body) => {
       if (error) {
         callback(error, null);
         return;
       }
   
-      if (!body.success) {
-        const message = `Success status was ${body.success}. Server message says: ${body.message} when fetching for IP ${body.ip}`;
-        callback(Error(message), null);
+      if (response.statusCode !== 200) {
+        callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
         return;
-      } 
+      }
   
-      const latitude = body.latitude
-      const longitude = body.longitude
-      callback(null, {latitude, longitude});
+      const passes = body.response;
+      callback(null, passes);
     });
   };
+  
   
   // Don't need to export the other function since we are not testing it right now.
   module.exports = { fetchCoordsByIP };
