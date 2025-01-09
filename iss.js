@@ -29,25 +29,47 @@ const needle = require('needle');
 //     });
 //   };
 
-const fetchISSFlyOverTimes = function(coords, callback) {
-    const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
+// const fetchISSFlyOverTimes = function(coords, callback) {
+//     const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
   
-    needle.get(url, (error, response, body) => {
+//     needle.get(url, (error, response, body) => {
+//       if (error) {
+//         callback(error, null);
+//         return;
+//       }
+  
+//       if (response.statusCode !== 200) {
+//         callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
+//         return;
+//       }
+  
+//       const passes = body.response;
+//       callback(null, passes);
+//     });
+//   };
+  
+const nextISSTimesForMyLocation = function(callback) {
+    fetchMyIP((error, ip) => {
       if (error) {
-        callback(error, null);
-        return;
+        return callback(error, null);
       }
   
-      if (response.statusCode !== 200) {
-        callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
-        return;
-      }
+      fetchCoordsByIP(ip, (error, loc) => {
+        if (error) {
+          return callback(error, null);
+        }
   
-      const passes = body.response;
-      callback(null, passes);
+        fetchISSFlyOverTimes(loc, (error, nextPasses) => {
+          if (error) {
+            return callback(error, null);
+          }
+  
+          callback(null, nextPasses);
+        });
+      });
     });
   };
   
-  
-  // Don't need to export the other function since we are not testing it right now.
-  module.exports = { fetchCoordsByIP };
+// Only export nextISSTimesForMyLocation and not the other three (API request) functions.
+// This is because they are not needed by external modules.
+module.exports = { nextISSTimesForMyLocation };
